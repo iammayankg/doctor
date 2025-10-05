@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi } from 'vitest';
 import App from './App';
@@ -14,12 +14,15 @@ vi.mock('react-pdf', async () => {
   return {
     ...actual,
     Document: vi.fn(({ onLoadSuccess, children }) => {
-      onLoadSuccess({ numPages: 2 });
+      if (onLoadSuccess) {
+        onLoadSuccess({ numPages: 2 });
+      }
       return <div>{children}</div>;
     }),
-    Page: vi.fn(({ pageNumber, onSuccess }) => {
-      // Mock the onSuccess callback with some dimensions
-      onSuccess({ width: 600, height: 800, pageNumber });
+    Page: vi.fn(({ pageNumber, onRenderSuccess }) => {
+      if (onRenderSuccess) {
+        onRenderSuccess({ width: 600, height: 800, pageNumber });
+      }
       return <div>Page {pageNumber}</div>;
     }),
   };
@@ -30,7 +33,7 @@ describe('App', () => {
   it('renders the main page with a title and file input', () => {
     render(<App />);
     expect(screen.getByText(/PDF Annotator/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/PDF Annotator/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Upload PDF/i)).toBeInTheDocument();
   });
 
   it('allows a user to upload a PDF and displays the document view', async () => {
@@ -43,7 +46,7 @@ describe('App', () => {
     render(<App />);
 
     const file = new File(['dummy content'], 'test.pdf', { type: 'application/pdf' });
-    const input = screen.getByLabelText(/PDF Annotator/i);
+    const input = screen.getByLabelText(/Upload PDF/i);
 
     // Act
     await userEvent.upload(input, file);

@@ -16,11 +16,10 @@ interface Annotation {
 type AnnotationsMap = { [page: number]: Annotation[] };
 
 const PageAnnotationCanvas: React.FC<{
-  pageNumber: number;
   annotations: Annotation[];
   onNewAnnotation: (annotation: Annotation) => void;
   pageDimensions: { width: number; height: number };
-}> = ({ pageNumber, annotations, onNewAnnotation, pageDimensions }) => {
+}> = ({ annotations, onNewAnnotation, pageDimensions }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [drawing, setDrawing] = useState(false);
   const [startPoint, setStartPoint] = useState<{ x: number; y: number } | null>(null);
@@ -195,21 +194,20 @@ const App: React.FC = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
       <h1>PDF Annotator</h1>
-      <input type="file" accept="application/pdf" onChange={handleFileChange} />
+      <input type="file" accept="application/pdf" onChange={handleFileChange} aria-label="Upload PDF" />
       {pdfFile && (
         <div style={{ margin: '20px', border: '1px solid #ccc' }}>
           <Document file={pdfFile} onLoadSuccess={onDocumentLoadSuccess}>
-            {Array.from(new Array(numPages), (el, index) => {
+            {Array.from(new Array(numPages), (_, index) => {
               const pageNumber = index + 1;
               return (
                 <div key={`page_wrapper_${pageNumber}`} style={{ position: 'relative', marginBottom: '10px' }}>
                   <Page
                     pageNumber={pageNumber}
-                    onSuccess={onPageRenderSuccess}
+                    onRenderSuccess={onPageRenderSuccess}
                   />
                   {pageDimensions[pageNumber] && (
                     <PageAnnotationCanvas
-                      pageNumber={pageNumber}
                       annotations={annotations[pageNumber] || []}
                       onNewAnnotation={(ann) => handleNewAnnotation(pageNumber, ann)}
                       pageDimensions={pageDimensions[pageNumber]}
