@@ -52,6 +52,11 @@ app.get('/annotations/:pdfFile', (req, res) => {
   }
 });
 
+// Catch-all route to serve the frontend's index.html
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/dist', 'index.html'));
+});
+
 if (require.main === module) {
   app.listen(port, () => {
     console.log(`Backend server listening at http://localhost:${port}`);
