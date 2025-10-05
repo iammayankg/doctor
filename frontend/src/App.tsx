@@ -3,8 +3,9 @@ import axios from 'axios';
 import { pdfjs, Document, Page } from 'react-pdf';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import 'react-pdf/dist/esm/Page/TextLayer.css';
+import pdfWorker from 'pdfjs-dist/build/pdf.worker.min.js?url';
 
-pdfjs.GlobalWorkerOptions.workerSrc = `/pdf.worker.min.js`;
+pdfjs.GlobalWorkerOptions.workerSrc = pdfWorker;
 
 interface Annotation {
   x: number;
@@ -131,9 +132,14 @@ const App: React.FC = () => {
     try {
       const response = await axios.get(`http://localhost:3001/annotations/${encodeURIComponent(pdfFilePath.split('/').pop() || '')}`);
       setAnnotations(response.data || {});
-    } catch (error) {
-      console.error('No annotations found or error loading them', error);
-      setAnnotations({});
+    } catch (error: any) {
+      if (error.response && error.response.status === 404) {
+        // Annotation file not found, which is an expected scenario.
+        setAnnotations({});
+      } else {
+        console.error('Error loading annotations:', error);
+        setAnnotations({});
+      }
     }
   };
 
